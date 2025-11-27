@@ -1,0 +1,30 @@
+{
+  "location": "Draynor Village",
+  "tree_type": "Willow",
+  "tree_templates": ["assets/trees/willow_*.png"],
+  "tree_search_region": [0.05, 0.05, 0.5, 0.5],
+  "bank_templates": ["assets/banks/draynor_booth_*.png"],
+  "deposit_all_templates": ["assets/ui/deposit_all_*.png"],
+  "bank_waypoints": [[0.39, 0.39], [0.37, 0.42], [0.36, 0.45]],
+  "return_waypoints": [[0.34, 0.46], [0.35, 0.44]],
+
+  "mouse_profile": "natural_curved",
+  "bezier_deviation_pixels": 35,
+  "bezier_control_variance": 0.4,
+  "move_duration_mean": 0.6,
+  "move_duration_std": 0.18,
+
+  "human_behavior": {
+    "long_break_chance": 0.12,
+    "long_break_range": [7, 22],
+    "camera_rotate_every_logs": [3, 7],
+    "check_skills_tab_chance": 0.15,
+    "simulated_afk_max_sec": 45
+  },
+
+  "click_offset": 15,
+  "tree_threshold": 0.68,
+  "bank_threshold": 0.7,
+  "deposit_threshold": 0.7
+  ,"template_scales": [0.9, 1.0, 1.1]
+}

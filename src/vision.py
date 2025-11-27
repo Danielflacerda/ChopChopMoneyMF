@@ -37,14 +37,14 @@ class TemplateMatcher:
         return best
 
 def load_templates(paths: List[str]) -> List[np.ndarray]:
+    import glob as pyglob
     items = []
     for p in paths:
-        try:
-            img = cv2.imread(p)
+        expanded = list(pyglob.glob(p)) if any(ch in p for ch in ["*", "?", "["]) else [p]
+        for path in expanded:
+            img = cv2.imread(path)
             if img is not None:
                 items.append(img)
-        except Exception:
-            pass
     return items
 
 def is_idle(roi: Tuple[int, int, int, int], duration_ms: int, threshold: float) -> bool:
@@ -55,4 +55,3 @@ def is_idle(roi: Tuple[int, int, int, int], duration_ms: int, threshold: float) 
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
     mean = float(np.mean(gray))
     return mean < threshold
-

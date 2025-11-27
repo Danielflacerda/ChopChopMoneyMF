@@ -1,0 +1,30 @@
+{
+  "location": "Seers' Village",
+  "tree_type": "Yew",
+  "tree_templates": ["assets/trees/yew_*.png"],
+  "tree_search_region": [0.06, 0.06, 0.5, 0.55],
+  "bank_templates": ["assets/banks/seers_booth_*.png"],
+  "deposit_all_templates": ["assets/ui/deposit_all_*.png"],
+  "bank_waypoints": [[0.43, 0.39], [0.44, 0.43], [0.45, 0.46]],
+  "return_waypoints": [[0.38, 0.48], [0.36, 0.46]],
+
+  "mouse_profile": "natural_curved",
+  "bezier_deviation_pixels": 32,
+  "bezier_control_variance": 0.38,
+  "move_duration_mean": 0.55,
+  "move_duration_std": 0.16,
+
+  "human_behavior": {
+    "long_break_chance": 0.1,
+    "long_break_range": [6, 18],
+    "camera_rotate_every_logs": [3, 6],
+    "check_skills_tab_chance": 0.12,
+    "simulated_afk_max_sec": 40
+  },
+
+  "click_offset": 15,
+  "tree_threshold": 0.7,
+  "bank_threshold": 0.72,
+  "deposit_threshold": 0.72
+  ,"template_scales": [0.9, 1.0, 1.1]
+}
