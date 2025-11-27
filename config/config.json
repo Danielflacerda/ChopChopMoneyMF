@@ -1,0 +1,70 @@
+{
+  "movement_profile": "casual",
+  "movement_profiles": {
+    "casual": {
+      "curvature": 0.18,
+      "path_jitter": 3.2,
+      "steps_min": 35,
+      "steps_max": 95,
+      "pixels_per_step": 6,
+      "step_delay_ms": 7,
+      "step_delay_sigma": 0.5,
+      "click_delay_ms": 40
+    },
+    "pro": {
+      "curvature": 0.12,
+      "path_jitter": 2.0,
+      "steps_min": 28,
+      "steps_max": 80,
+      "pixels_per_step": 7,
+      "step_delay_ms": 5,
+      "step_delay_sigma": 0.35,
+      "click_delay_ms": 30
+    }
+  },
+  "click_offset_pixels": 15,
+  "roi": {
+    "game": [0, 0, 1920, 1080],
+    "idle_character": [900, 450, 120, 160],
+    "inventory_last_slot": [1600, 820, 42, 36]
+  },
+  "templates": {
+    "trees": [
+      "assets/trees/willow_01.png",
+      "assets/trees/willow_02.png",
+      "assets/trees/willow_03.png"
+    ],
+    "bank": [
+      "assets/bank/draynor_booth_01.png",
+      "assets/bank/draynor_booth_02.png"
+    ],
+    "deposit_all": [
+      "assets/ui/deposit_all_01.png"
+    ]
+  },
+  "thresholds": {
+    "tree": 0.68,
+    "bank": 0.7,
+    "deposit_all": 0.72,
+    "idle_motion_threshold": 4.0,
+    "idle_inventory_threshold": 8.0
+  },
+  "timers": {
+    "cut_animation_seconds": [3.5, 4.8]
+  },
+  "behavior": {
+    "long_pause_prob": [0.08, 0.15],
+    "long_pause_seconds": [5.0, 18.0],
+    "lose_focus_prob": [0.02, 0.05],
+    "camera_rotation_degrees": [10, 25]
+  },
+  "waypoints": {
+    "return_spot": [
+      [980, 520],
+      [1005, 540]
+    ]
+  },
+  "hotkeys": {
+    "stop": "F12"
+  }
+}
