@@ -19,7 +19,9 @@
     "long_break_range": [7, 22],
     "camera_rotate_every_logs": [3, 7],
     "check_skills_tab_chance": 0.15,
-    "simulated_afk_max_sec": 45
+    "simulated_afk_max_sec": 45,
+    "warmup_seconds": 90,
+    "long_break_soft_cap_sec": 1.5
   },
 
   "click_offset": 15,

@@ -91,7 +91,9 @@ class GenericChopAndBank:
         oy = root[1] + 20
         self.overlay = Overlay(position=tuple(cfg.get("overlay_position", [ox, oy])))
         self.root_win = root
-        self.session = {"logs_cut": 0, "start": dt.datetime.now().isoformat(), "actions": []}
+        now = dt.datetime.now()
+        self.session = {"logs_cut": 0, "start": now.isoformat(), "actions": []}
+        self._start_ts = now.timestamp()
         self.blocks = make_blocks()
         persist_blocks(self.blocks)
 
@@ -106,7 +108,10 @@ class GenericChopAndBank:
                     self.overlay.update(["Status: Offline programado", "XP/h: --", f"Logs: {self.session['logs_cut']}"]) 
                     time.sleep(5)
                     continue
-                inject_distraction(self.cfg.get("human_behavior", {}).get("long_break_chance", 0.12), tuple(self.cfg.get("human_behavior", {}).get("long_break_range", [7, 22])))
+                hb = self.cfg.get("human_behavior", {})
+                warmup_sec = float(hb.get("warmup_seconds", 90))
+                cap = float(hb.get("long_break_soft_cap_sec", 1.5))
+                inject_distraction(hb.get("long_break_chance", 0.12), tuple(hb.get("long_break_range", [7, 22])), cap_sec=cap, warmup_deadline_ts=self._start_ts + warmup_sec)
                 hit = CutTree(self.cfg, self.matcher, self.engine).execute()
                 if hit:
                     count += 1
