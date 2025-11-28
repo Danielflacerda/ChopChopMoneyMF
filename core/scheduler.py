@@ -17,7 +17,11 @@ def make_blocks(total_minutes: int = 360, blocks_range: Tuple[int, int] = (8, 14
     for _ in range(n):
         if minutes_left <= 0:
             break
-        dur = random.randint(3, min(210, minutes_left))
+        max_dur = min(210, minutes_left)
+        if max_dur < 3:
+            dur = minutes_left
+        else:
+            dur = random.randint(3, max_dur)
         start_min = random.randint(0, 24 * 60 - dur)
         start = now + dt.timedelta(minutes=start_min)
         end = start + dt.timedelta(minutes=dur)
@@ -38,4 +42,3 @@ def is_offline_now(blocks: List[Tuple[dt.datetime, dt.datetime]]) -> bool:
         if s <= now <= e:
             return True
     return False
-
