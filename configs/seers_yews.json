@@ -27,4 +27,5 @@
   "bank_threshold": 0.72,
   "deposit_threshold": 0.72
   ,"template_scales": [0.9, 1.0, 1.1]
+  ,"window_title": "RuneLite"
 }

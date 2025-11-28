@@ -26,7 +26,7 @@ class CutTree(Command):
         self.templates = load_templates(cfg.get("tree_templates", []))
 
     def execute(self) -> Optional[Tuple[int, int, int, int]]:
-        root = detect_game_roi()
+        root = detect_game_roi(title_candidates=[self.cfg.get("window_title", "RuneLite")])
         rel_roi = tuple(self.cfg.get("tree_search_region", [0.0, 0.0, 1.0, 1.0]))
         roi = to_abs_rect(root, rel_roi)
         thr = float(self.cfg.get("tree_threshold", 0.68))
@@ -48,7 +48,7 @@ class WalkWaypoints(Command):
 
     def execute(self) -> None:
         wps: List[List[float]] = self.cfg.get(self.key, [])
-        root = detect_game_roi()
+        root = detect_game_roi(title_candidates=[self.cfg.get("window_title", "RuneLite")])
         for wp in wps:
             px, py = to_abs_point(root, (wp[0], wp[1]))
             x = int(np.random.normal(px, 30))
@@ -65,7 +65,7 @@ class DepositAll(Command):
         self.deposit_templates = load_templates(cfg.get("deposit_all_templates", []))
 
     def execute(self) -> None:
-        root = detect_game_roi()
+        root = detect_game_roi(title_candidates=[self.cfg.get("window_title", "RuneLite")])
         rel_roi = tuple(self.cfg.get("tree_search_region", [0.0, 0.0, 1.0, 1.0]))
         roi = to_abs_rect(root, rel_roi)
         thr = float(self.cfg.get("bank_threshold", 0.7))
@@ -86,7 +86,11 @@ class GenericChopAndBank:
         self.cfg = cfg
         self.matcher = TemplateMatcher()
         self.engine = MovementEngine()
-        self.overlay = Overlay(position=tuple(cfg.get("overlay_position", [50, 50])))
+        root = detect_game_roi(title_candidates=[cfg.get("window_title", "RuneLite")])
+        ox = root[0] + root[2] + 20
+        oy = root[1] + 20
+        self.overlay = Overlay(position=tuple(cfg.get("overlay_position", [ox, oy])))
+        self.root_win = root
         self.session = {"logs_cut": 0, "start": dt.datetime.now().isoformat(), "actions": []}
         self.blocks = make_blocks()
         persist_blocks(self.blocks)
@@ -112,7 +116,7 @@ class GenericChopAndBank:
                     wait_gaussian(4.0, 0.18)
                 if count % rotate_each == 0 and count > 0:
                     count += 1
-                if self.cfg.get("bank_waypoints"):
+                if self.cfg.get("bank_waypoints") and (self.session["logs_cut"] % 28 == 0) and self.session["logs_cut"] > 0:
                     self.overlay.update(["Status: Indo ao banco", "XP/h: --", f"Logs: {self.session['logs_cut']}"]) 
                     WalkWaypoints(self.cfg, self.engine, "bank_waypoints").execute()
                     DepositAll(self.cfg, self.matcher, self.engine).execute()
