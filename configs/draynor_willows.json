@@ -30,4 +30,18 @@
   "deposit_threshold": 0.7
   ,"template_scales": [0.9, 1.0, 1.1]
   ,"window_title": "RuneLite"
+  ,"detection": {"mode": "color"}
+  ,"colors": {
+    "trees_hsv": [[[20, 100, 100], [35, 255, 255]]],
+    "trees_min_area": 250,
+    "bank_hsv": [[[85, 100, 100], [100, 255, 255]]],
+    "bank_min_area": 220,
+    "deposit_hsv": [[[140, 120, 120], [160, 255, 255]]],
+    "deposit_min_area": 180
+  }
+  ,"run_session": {
+    "max_minutes": 20,
+    "pause_count": 5,
+    "pause_seconds_range": [2, 5]
+  }
 }

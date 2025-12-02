@@ -17,6 +17,15 @@ def detect_game_roi(title_candidates: Optional[Sequence[str]] = None) -> Tuple[i
     except Exception:
         pass
     try:
+        if hasattr(pyautogui, "getActiveWindow"):
+            w = pyautogui.getActiveWindow()
+            if w and w.width >= 800 and w.height >= 600:
+                title = (w.title or "").lower()
+                if title not in ("tk", "python") and any(k in title for k in ["runelite", "old school", "osrs", "osbuddy"]):
+                    return _wrect(w)
+    except Exception:
+        pass
+    try:
         if hasattr(pyautogui, "getAllWindows"):
             wins = pyautogui.getAllWindows()
             candidates = []

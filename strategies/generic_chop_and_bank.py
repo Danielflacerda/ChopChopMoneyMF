@@ -5,13 +5,14 @@ from typing import Dict, Optional, Tuple, List
 import numpy as np
 
 from core.movement import MovementEngine, human_click
-from core.vision import TemplateMatcher, load_templates
+from core.vision import TemplateMatcher, load_templates, find_color_bboxes
 from core.actions import wait_gaussian, inject_distraction
 from core.dashboard import Overlay
 from core.scheduler import make_blocks, persist_blocks, is_offline_now
 from core.window import detect_game_roi, to_abs_rect, to_abs_point
 from pathlib import Path
 import json
+import pyautogui
 import datetime as dt
 
 class Command:
@@ -29,15 +30,28 @@ class CutTree(Command):
         root = detect_game_roi(title_candidates=[self.cfg.get("window_title", "RuneLite")])
         rel_roi = tuple(self.cfg.get("tree_search_region", [0.0, 0.0, 1.0, 1.0]))
         roi = to_abs_rect(root, rel_roi)
-        thr = float(self.cfg.get("tree_threshold", 0.68))
-        scales = self.cfg.get("template_scales", [0.9, 1.0, 1.1])
-        hit = self.matcher.find(self.templates, roi, thr, scales=scales)
-        if hit:
-            x, y, w, h, _ = hit
-            cx = int(np.random.normal(x + w // 2, self.cfg.get("click_offset", 15) * 0.45))
-            cy = int(np.random.normal(y + h // 2, self.cfg.get("click_offset", 15) * 0.45))
-            human_click(cx, cy, self.cfg.get("mouse_profile", "natural_curved"), self.cfg)
-            return (x, y, w, h)
+        mode = (self.cfg.get("detection", {}) or {}).get("mode", "template")
+        if mode == "color":
+            hsv = self.cfg.get("colors", {}).get("trees_hsv", [[[20, 100, 100], [35, 255, 255]]])
+            min_area = int(self.cfg.get("colors", {}).get("trees_min_area", 250))
+            boxes = find_color_bboxes(hsv, roi, min_area)
+            if boxes:
+                bx = boxes[np.random.randint(0, len(boxes))]
+                x, y, w, h, _a = bx
+                cx = int(np.random.normal(x + w // 2, self.cfg.get("click_offset", 15) * 0.45))
+                cy = int(np.random.normal(y + h // 2, self.cfg.get("click_offset", 15) * 0.45))
+                human_click(cx, cy, self.cfg.get("mouse_profile", "natural_curved"), self.cfg)
+                return (x, y, w, h)
+        else:
+            thr = float(self.cfg.get("tree_threshold", 0.68))
+            scales = self.cfg.get("template_scales", [0.9, 1.0, 1.1])
+            hit = self.matcher.find(self.templates, roi, thr, scales=scales)
+            if hit:
+                x, y, w, h, _ = hit
+                cx = int(np.random.normal(x + w // 2, self.cfg.get("click_offset", 15) * 0.45))
+                cy = int(np.random.normal(y + h // 2, self.cfg.get("click_offset", 15) * 0.45))
+                human_click(cx, cy, self.cfg.get("mouse_profile", "natural_curved"), self.cfg)
+                return (x, y, w, h)
         return None
 
 class WalkWaypoints(Command):
@@ -68,18 +82,35 @@ class DepositAll(Command):
         root = detect_game_roi(title_candidates=[self.cfg.get("window_title", "RuneLite")])
         rel_roi = tuple(self.cfg.get("tree_search_region", [0.0, 0.0, 1.0, 1.0]))
         roi = to_abs_rect(root, rel_roi)
-        thr = float(self.cfg.get("bank_threshold", 0.7))
-        bank = self.matcher.find(self.bank_templates, roi, thr, scales=self.cfg.get("template_scales", [0.9, 1.0, 1.1]))
-        if bank:
-            x, y, w, h, _ = bank
-            self.engine.move(self.cfg.get("mouse_profile", "natural_curved"), int(np.random.normal(x + w // 2, 7)), int(np.random.normal(y + h // 2, 7)), self.cfg, click=True)
-            wait_gaussian(1.8, 0.25)
-        dep_thr = float(self.cfg.get("deposit_threshold", 0.7))
-        dep = self.matcher.find(self.deposit_templates, roi, dep_thr, scales=self.cfg.get("template_scales", [0.9, 1.0, 1.1]))
-        if dep:
-            x, y, w, h, _ = dep
-            self.engine.move(self.cfg.get("mouse_profile", "natural_curved"), int(np.random.normal(x + w // 2, 6)), int(np.random.normal(y + h // 2, 6)), self.cfg, click=True)
-            wait_gaussian(1.2, 0.25)
+        mode = (self.cfg.get("detection", {}) or {}).get("mode", "template")
+        if mode == "color":
+            hsv_bank = self.cfg.get("colors", {}).get("bank_hsv", [[[85, 100, 100], [100, 255, 255]]])
+            min_area_bank = int(self.cfg.get("colors", {}).get("bank_min_area", 220))
+            boxes = find_color_bboxes(hsv_bank, roi, min_area_bank)
+            if boxes:
+                x, y, w, h, _a = boxes[0]
+                self.engine.move(self.cfg.get("mouse_profile", "natural_curved"), int(np.random.normal(x + w // 2, 7)), int(np.random.normal(y + h // 2, 7)), self.cfg, click=True)
+                wait_gaussian(1.8, 0.25)
+            hsv_dep = self.cfg.get("colors", {}).get("deposit_hsv", [[[140, 100, 100], [160, 255, 255]]])
+            min_area_dep = int(self.cfg.get("colors", {}).get("deposit_min_area", 180))
+            dep_boxes = find_color_bboxes(hsv_dep, roi, min_area_dep)
+            if dep_boxes:
+                x, y, w, h, _a = dep_boxes[0]
+                self.engine.move(self.cfg.get("mouse_profile", "natural_curved"), int(np.random.normal(x + w // 2, 6)), int(np.random.normal(y + h // 2, 6)), self.cfg, click=True)
+                wait_gaussian(1.2, 0.25)
+        else:
+            thr = float(self.cfg.get("bank_threshold", 0.7))
+            bank = self.matcher.find(self.bank_templates, roi, thr, scales=self.cfg.get("template_scales", [0.9, 1.0, 1.1]))
+            if bank:
+                x, y, w, h, _ = bank
+                self.engine.move(self.cfg.get("mouse_profile", "natural_curved"), int(np.random.normal(x + w // 2, 7)), int(np.random.normal(y + h // 2, 7)), self.cfg, click=True)
+                wait_gaussian(1.8, 0.25)
+            dep_thr = float(self.cfg.get("deposit_threshold", 0.7))
+            dep = self.matcher.find(self.deposit_templates, roi, dep_thr, scales=self.cfg.get("template_scales", [0.9, 1.0, 1.1]))
+            if dep:
+                x, y, w, h, _ = dep
+                self.engine.move(self.cfg.get("mouse_profile", "natural_curved"), int(np.random.normal(x + w // 2, 6)), int(np.random.normal(y + h // 2, 6)), self.cfg, click=True)
+                wait_gaussian(1.2, 0.25)
 
 class GenericChopAndBank:
     def __init__(self, cfg: Dict):
@@ -87,8 +118,16 @@ class GenericChopAndBank:
         self.matcher = TemplateMatcher()
         self.engine = MovementEngine()
         root = detect_game_roi(title_candidates=[cfg.get("window_title", "RuneLite")])
+        sw, sh = pyautogui.size()
         ox = root[0] + root[2] + 20
         oy = root[1] + 20
+        ow, oh = 400, 160
+        if ox + ow > sw:
+            ox = max(20, root[0] - ow - 20)
+        if oy + oh > sh:
+            oy = max(20, root[1] - oh - 20)
+        if (root[0], root[1], root[2], root[3]) == (0, 0, sw, sh):
+            ox, oy = 50, 50
         self.overlay = Overlay(position=tuple(cfg.get("overlay_position", [ox, oy])))
         self.root_win = root
         now = dt.datetime.now()
@@ -104,6 +143,11 @@ class GenericChopAndBank:
         rotate_each = random.randint(int(lo), int(hi))
         try:
             while True:
+                rs = self.cfg.get("run_session", {})
+                max_minutes = float(rs.get("max_minutes", 0))
+                if max_minutes > 0:
+                    if time.time() - self._start_ts > max_minutes * 60.0:
+                        break
                 if is_offline_now(self.blocks):
                     self.overlay.update(["Status: Offline programado", "XP/h: --", f"Logs: {self.session['logs_cut']}"]) 
                     time.sleep(5)
@@ -119,6 +163,12 @@ class GenericChopAndBank:
                     self.session["actions"].append({"t": dt.datetime.now().isoformat(), "action": "cut"})
                     self.overlay.update(["Status: Cortando", "XP/h: --", f"Logs: {self.session['logs_cut']}"]) 
                     wait_gaussian(4.0, 0.18)
+                    pauses = int(rs.get("pause_count", 0))
+                    if pauses > 0:
+                        rng = rs.get("pause_seconds_range", [2, 5])
+                        if random.uniform(0, 1) < 0.3:
+                            time.sleep(random.uniform(float(rng[0]), float(rng[1])))
+                            rs["pause_count"] = pauses - 1
                 if count % rotate_each == 0 and count > 0:
                     count += 1
                 if self.cfg.get("bank_waypoints") and (self.session["logs_cut"] % 28 == 0) and self.session["logs_cut"] > 0:
